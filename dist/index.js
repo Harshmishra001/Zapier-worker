@@ -19,18 +19,10 @@ const kafkajs_1 = require("kafkajs");
 const parser_1 = require("./parser");
 const email_1 = require("./email");
 const prismaClient = new client_1.PrismaClient();
-const TOPIC_NAME = "mohit-zapier";
+const TOPIC_NAME = "quickstart-events";
 const kafka = new kafkajs_1.Kafka({
-    clientId: process.env.KAFKA_CLIENT_ID,
-    brokers: [process.env.KAFKA_BROKERS || ""],
-    ssl: {
-        rejectUnauthorized: false,
-    },
-    sasl: {
-        mechanism: 'scram-sha-256',
-        username: process.env.KAFKA_SASL_USERNAME || "",
-        password: process.env.KAFKA_SASL_PASSWORD || "",
-    },
+    clientId: "outbox proccessor",
+    brokers: ["localhost:9092"],
 });
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -41,17 +33,17 @@ function main() {
         yield consumer.subscribe({ topic: TOPIC_NAME, fromBeginning: true });
         yield consumer.run({
             autoCommit: false,
-            eachMessage: (_a) => __awaiter(this, [_a], void 0, function* ({ topic, partition, message }) {
-                var _b, _c, _d, _e, _f, _g;
+            eachMessage: ({ topic, partition, message }) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c, _d, _e, _f;
                 console.log({
                     partition,
                     offset: message.offset,
-                    value: (_b = message.value) === null || _b === void 0 ? void 0 : _b.toString(),
+                    value: (_a = message.value) === null || _a === void 0 ? void 0 : _a.toString(),
                 });
-                if (!((_c = message.value) === null || _c === void 0 ? void 0 : _c.toString())) {
+                if (!((_b = message.value) === null || _b === void 0 ? void 0 : _b.toString())) {
                     return;
                 }
-                const parsedValue = JSON.parse((_d = message.value) === null || _d === void 0 ? void 0 : _d.toString());
+                const parsedValue = JSON.parse((_c = message.value) === null || _c === void 0 ? void 0 : _c.toString());
                 const zapRunId = parsedValue.zapRunId;
                 const stage = parsedValue.stage;
                 const zapRunDetails = yield prismaClient.zapRun.findFirst({
@@ -77,13 +69,13 @@ function main() {
                 }
                 const zapRunMetadata = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.metadata;
                 if (currentAction.type.id === "email") {
-                    const body = (0, parser_1.parse)((_e = currentAction.metadata) === null || _e === void 0 ? void 0 : _e.body, zapRunMetadata);
-                    const to = (0, parser_1.parse)((_f = currentAction.metadata) === null || _f === void 0 ? void 0 : _f.email, zapRunMetadata);
+                    const body = (0, parser_1.parse)((_d = currentAction.metadata) === null || _d === void 0 ? void 0 : _d.body, zapRunMetadata);
+                    const to = (0, parser_1.parse)((_e = currentAction.metadata) === null || _e === void 0 ? void 0 : _e.email, zapRunMetadata);
                     console.log(`Sending out email to ${to} body is ${body}`);
                     yield (0, email_1.sendEmail)(to, body);
                 }
                 yield new Promise(r => setTimeout(r, 500));
-                const lastStage = (((_g = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.zap.actions) === null || _g === void 0 ? void 0 : _g.length) || 1) - 1;
+                const lastStage = (((_f = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.zap.actions) === null || _f === void 0 ? void 0 : _f.length) || 1) - 1;
                 console.log(lastStage);
                 console.log(stage);
                 if (lastStage !== stage) {

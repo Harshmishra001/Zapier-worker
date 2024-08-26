@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendEmail = sendEmail;
+exports.sendEmail = void 0;
 const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -23,10 +23,11 @@ const transporter = nodemailer.createTransport({
 function sendEmail(to, body) {
     return __awaiter(this, void 0, void 0, function* () {
         const info = yield transporter.sendMail({
-            from: 'mohitop1234567890@gmail.com',
+            from: 'harsh@gmail.com',
             to,
             subject: "Hello",
             text: body
         });
     });
 }
+exports.sendEmail = sendEmail;

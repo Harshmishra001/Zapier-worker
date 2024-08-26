@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parse = parse;
+exports.parse = void 0;
 function parse(text, values, startDelimeter = "{", endDelimeter = "}") {
     let startIndex = 0;
     let endIndex = 1;
@@ -35,3 +35,4 @@ function parse(text, values, startDelimeter = "{", endDelimeter = "}") {
     }
     return finalString;
 }
+exports.parse = parse;
